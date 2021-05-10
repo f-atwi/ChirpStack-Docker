@@ -5,7 +5,7 @@
 # configuration examples.
 
 [postgresql]
-dsn="postgres://chirpstack_ns:chirpstack_ns@postgresql/chirpstack_ns?sslmode=disable"
+dsn="postgres://chirpstack_ns:chirpstack_ns@postgresql:5432/chirpstack_ns?sslmode=disable"
 
 [redis]
 url="redis://redis:6379"
@@ -49,5 +49,10 @@ server="tcp://mosquitto:1883"
 [join_server.default]
 server="http://chirpstack-application-server:8003"
 
-[geolocation_server]
-server="chirpstack-geolocation-server:8005"
+[metrics]
+# Timezone
+#
+# The timezone is used for correctly aggregating the metrics (e.g. per hour,
+# day or month).
+# Example: "Europe/Amsterdam" or "Local" for the the system's local time zone.
+timezone="Local"

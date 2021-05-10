@@ -1,57 +1,84 @@
+# Version of reference file
 version: "3"
 
+# Defines the services i.e. the containers
 services:
-  chirpstack-network-server:
-    image: chirpstack/chirpstack-network-server:3
-    volumes:
+  chirpstack-network-server: # Service name
+    image: chirpstack/chirpstack-network-server:3 # Image and version (latest if version is not specified)
+    container_name: chirpstack-network-server  # Container name
+    volumes:  # Specifies all mounted volumes
       - ./configuration/chirpstack-network-server:/etc/chirpstack-network-server
     depends_on:
       - postgresql
       - mosquitto
-
+    networks: # Connects to a network
+      cgwi: # Name of the network to connect the container to
+        ipv4_address: 172.20.0.7  # Specifies IP of container. This is unnecessary because of hostname resolution but it makes debuggin easier.
+  
   chirpstack-application-server:
     image: chirpstack/chirpstack-application-server:3
+    container_name: chirpstack-application-server
     ports:
       - 8080:8080
     volumes:
       - ./configuration/chirpstack-application-server:/etc/chirpstack-application-server
     depends_on:
       - chirpstack-network-server
+    networks:
+      cgwi:
+        ipv4_address: 172.20.0.6
 
   chirpstack-gateway-bridge:
     image: chirpstack/chirpstack-gateway-bridge:3
+    container_name: chirpstack-gateway-bridge
     ports:
       - 1700:1700/udp
     volumes:
       - ./configuration/chirpstack-gateway-bridge:/etc/chirpstack-gateway-bridge
     depends_on: 
       - mosquitto
-
-  chirpstack-geolocation-server:
-    image: chirpstack/chirpstack-geolocation-server:3
-    volumes:
-      - ./configuration/chirpstack-geolocation-server:/etc/chirpstack-geolocation-server
+    networks:
+      cgwi:
+        ipv4_address: 172.20.0.3
 
   postgresql:
-    image: postgres:9.6-alpine
+    image: postgres:13.2-alpine
+    container_name: postgresql
     environment:
       - POSTGRES_PASSWORD=root
     volumes:
       - ./configuration/postgresql/initdb:/docker-entrypoint-initdb.d
       - postgresqldata:/var/lib/postgresql/data
+    networks:
+      cgwi:
+        ipv4_address: 172.20.0.4
 
   redis:
-    image: redis:5-alpine
+    image: redis:6.2.1-alpine
+    container_name: redis
     volumes:
       - redisdata:/data
+    networks:
+      cgwi:
+        ipv4_address: 172.20.0.5
 
   mosquitto:
     image: eclipse-mosquitto:2
+    container_name: mosquitto
     ports:
       - 1883:1883
     volumes: 
       - ./configuration/eclipse-mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      cgwi:
+        ipv4_address: 172.20.0.2
 
+networks: # Creates a network.
+  cgwi: # The network created has the name PROJECT_cgwi and in this case chirpstack_cgwi since this is the project folder name
+    ipam:
+      config:
+      - subnet: 172.20.0.0/24
+      
 volumes:
   postgresqldata:
   redisdata:
